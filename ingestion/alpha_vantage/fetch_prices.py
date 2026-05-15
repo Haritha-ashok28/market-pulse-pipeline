@@ -23,9 +23,13 @@ for sector, stocks in tickers.items():
             "symbol": i,
             "apikey": API_KEY
             }
-        response = requests.get(BASE_URL,params=params)
-        data = response.json()
-        os.makedirs(f"data/{sector}", exist_ok=True)
-        with open(f"data/{sector}/{i}.json", "w") as f:
-            json.dump(data,f)
-        time.sleep(12)
+        try:
+            response = requests.get(BASE_URL,params=params)
+            data = response.json()
+            os.makedirs(f"data/{sector}", exist_ok=True)
+            with open(f"data/{sector}/{i}.json", "w") as f:
+                json.dump(data,f)
+            time.sleep(12)
+        except Exception as e:
+            print(f"{i} failed: {e}")
+            continue
