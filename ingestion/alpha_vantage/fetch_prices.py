@@ -27,21 +27,35 @@ tickers = {
         "healthcare": ["JNJ", "UNH", "PFE", "ABBV", "MRK"]
     }
 
-for sector, stocks in tickers.items():
-        for i in stocks:
-            params = {
-                "function": "TIME_SERIES_DAILY",
-                "symbol": i,
-                "apikey": API_KEY
-                }
+def save_data(ticker, sector, data):
+    os.makedirs(f"data/{sector}", exist_ok=True)
+    with open(f"data/{sector}/{ticker}.json", "w") as f:
+        json.dump(data, f)
+
+
+def fetch_prices(ticker, sector):
+    params = {
+        "function": "TIME_SERIES_DAILY",
+        "symbol": ticker,
+        "apikey": API_KEY
+    }
+    response = requests.get(BASE_URL, params=params)
+    response.raise_for_status()
+    return response.json()
+
+
+def run_pipeline():
+    for sector, stocks in tickers.items():
+        for ticker in stocks:
             try:
-                response = requests.get(BASE_URL,params=params)
-                data = response.json()
-                os.makedirs(f"data/{sector}", exist_ok=True)
-                with open(f"data/{sector}/{i}.json", "w") as f:
-                    json.dump(data,f)
+                data = fetch_prices(ticker, sector)
+                save_data(ticker, sector, data)
                 time.sleep(12)
-                logger.info(f"{i} fetched successfully")
+                logger.info(f"{ticker} fetched successfully")
             except Exception as e:
-                logger.error(f"{i} failed: {e}")
+                logger.error(f"{ticker} failed: {e}")
                 continue
+
+
+if __name__ == "__main__":
+    run_pipeline()
